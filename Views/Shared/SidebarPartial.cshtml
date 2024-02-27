@@ -1,0 +1,141 @@
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+
+<div></div>
+<div class="left">
+	@if(ViewBag.deptId == 1)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/records.webp"/>
+		</div>
+		<a href="@Url.Action("RecordsClerk")">
+			<button type="button">Home</button>
+			<img src="~/icons/house-solid.svg"/>
+		</a>
+		<a href="@Url.Action("PatientListOnly")">
+			<button type="button">Patients List</button>
+			<img src="~/icons/hospital-user-solid.svg"/>
+		</a>
+	}
+	
+	@if(ViewBag.deptId == 2)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/nurse.webp"/>
+		</div>
+		<a href="@Url.Action("Nurse")">
+			<button type="button">Next patient</button>
+			<img src="~/icons/heart-pulse-solid.svg"/>
+		</a>
+		<a href="@Url.Action("NurseQueue")">
+			<button type="button">View queue</button>
+			<img src="~/icons/list-solid.svg"/>
+		</a>
+	}
+	
+	@if(ViewBag.deptId == 3)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/doctor.jpg"/>
+		</div>
+		@* <a href="@Url.Action("Doctor")">
+			<button type="button">Next patient</button>
+			<img src="~/icons/user-doctor-solid.svg"/>
+		</a> *@
+		<a href="@Url.Action("DoctorQueue")">
+			<button type="button">View Queue</button>
+			<img src="~/icons/list-solid.svg"/>
+		</a>
+		<a href="@Url.Action("AdmittedQueue")">
+			<button type="button">Admitted List</button>
+			<img style="width:20px;height:20px" src="~/icons/bed-svgrepo-com.svg"/>
+		</a>
+		<a href="@Url.Action("PatientList")">
+			<button type="button">Patients List</button>
+			<img src="~/icons/hospital-user-solid.svg"/>
+		</a>
+	}
+	
+	@if(ViewBag.deptId == 4)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/lab.webp"/>
+		</div>
+		<a href="@Url.Action("Lab")">
+			<button type="button">Next patient</button>
+			<img src="~/icons/syringe-solid.svg"/>
+		</a>
+		<a href="@Url.Action("LabQueue")">
+			<button type="button">View Queue</button>
+			<img src="~/icons/list-solid.svg"/>
+		</a>
+		<a href="@Url.Action("PatientList")">
+			<button type="button">Patients List</button>
+			<img src="~/icons/hospital-user-solid.svg"/>
+		</a>
+	}
+	
+	@if(ViewBag.deptId == 5)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/admin.jpg"/>
+		</div>
+		<a href="@Url.Action("PatientList", "Staff")">
+			<button type="button">Patients List</button>
+			<img src="~/icons/list-solid.svg"/>
+		</a>
+		<a href="@Url.Action("Index", "Admin")">
+			<button type="button">View Users</button>
+			<img src="~/icons/database-solid.svg"/>
+		</a>
+	}
+	
+	@if(ViewBag.deptId == 6)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/pharmacy.jpg"/>
+		</div>
+		<a href="@Url.Action("PharmacyQueue")">
+			<button type="button">View Queue</button>
+			<img src="~/icons/list-solid.svg"/>
+		</a>
+	}
+	
+	@if(ViewBag.deptId == 7)
+	{
+		<div class="avatar">
+			<div class="a-overlay"><p>@UserManager.GetUserName(User)</p></div>
+			<img src="~/images/cashier.webp"/>
+		</div>
+		<a href="@Url.Action("CashierQueue")">
+			<button type="button">View Queue</button>
+			<img src="~/icons/list-solid.svg"/>
+		</a>
+	}
+	
+    <form style="cursor: pointer" id="logoutForm" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+        <button id="logout" type="submit">Logout</button>
+		<img src="~/icons/right-from-bracket-solid.svg"/>
+    </form>
+</div>
+
+
+<script>
+    const currentUrl = window.location.pathname;
+	let button = {}
+	let index = 0
+	const navigationLinks = document.querySelectorAll('.left a');
+
+    navigationLinks.forEach(link => {
+		link.classList.toggle('active', link.href.split("/")[4] === currentUrl.split("/")[2]);
+		index++
+    });
+</script>

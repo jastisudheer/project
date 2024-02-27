@@ -1,0 +1,177 @@
+﻿@model LabQueueViewModel
+
+<partial name="Navbar" />
+
+@if (TempData.ContainsKey("L_ConfirmationMessage"))
+{
+    <div class="alert alert-success">
+        @TempData["L_ConfirmationMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+@if (TempData.ContainsKey("L_WarningMessage"))
+{
+    <div class="alert alert-danger">
+        @TempData["L_WarningMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+
+<div class="grid">
+    <partial name="SidebarPartial" />
+    <div class="right">
+        
+        <div class="form-card" style="height:740px">
+            <h2 class="text-center py-3">Lab Queue</h2>
+            <form method="get"class="search" action="@Url.Action("LabQueue")">
+                <div class="input-group mb-3 px-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search by Patient_No, Firstname or Lastname" aria-describedby="button-addon2">
+                    <button class="search-button" type="submit" id="button-addon2">Search</button>
+                </div>
+            </form>
+            @if (Model.QueueViewModel.PatientsInLine.Any())
+            {
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>PatientNo</th>
+                            <th>Patient Name</th>
+                            <th>QueueNo</th>
+                            <th>Lab Names</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var patient in Model.QueueViewModel.PatientsInLine)
+                        {
+                            <tr>
+                                <td>@patient.PatientNo</td>
+                                <td>@($"{patient.Patient.LastName} {patient.Patient.FirstName}")</td>
+                                <td>@patient.QueueNo</td>
+                                <td>
+                                    @{
+                                        List<string> labNames = patient.LabName.Split(" ").ToList();
+                                        labNames = labNames.Where(lab => lab != " ").ToList();
+										for(int i = 0; i < labNames.Count(); i++)
+										{
+											@($"{labNames[i]}");
+                                            if(i != labNames.Count() - 1)
+                                            {
+                                                @($", ");
+                                            }
+										}
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Lab")">
+                                    <button type="button" class="table-button" data-bs-toggle="modal" data-bs-target="#exampleModal-@patient.PatientNo">
+                                        Check Labs
+                                    </button>
+                                    </a>
+                                </td>
+                            </tr>
+
+                            @* <div class="modal fade" id="exampleModal-@patient.PatientNo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Submit Lab Report for @patient.Patient.LastName @patient.Patient.FirstName</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form asp-controller="Staff" asp-action="Lab" autocomplete="off">
+                                                <div class="container text-center">
+                                                    @for(int i = 0; i < labNames.Count() && i < Model.Labs.Count; i++){
+													<div id="lab-fields-@i">
+														<h5 class="rounded text-primary fs-4">
+															@labNames[i]
+														</h5>
+														<div class="lab_row p-3 rounded mb-2">
+															<div class="lab_col1">
+                                                                <textarea asp-for="Labs[i].Result" class="form-control" rows="4" placeholder="Lab Result"></textarea>
+															</div>
+															<div class="lab_col">
+																<textarea asp-for="Labs[i].Notes" class="form-control" placeholder="Lab Notes"></textarea>
+															</div>
+														</div>
+														<input asp-for="Labs[i].PatientNo" value="@patient.PatientNo" type="hidden" />
+														<input asp-for="Labs[i].LabName" value="@labNames[i]" type="hidden" />
+													</div>
+													}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Save</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> *@
+
+                        }
+                    </tbody>
+                </table>
+    
+    
+                <nav class="py-3" aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.QueueViewModel.CurrentPage > 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("LabQueue", new { page = Model.QueueViewModel.CurrentPage - 1, search = Model.QueueViewModel.Search })">Previous</a></li>
+                        }
+                        @for (int i = 1; i <= Model.QueueViewModel.TotalPatients / Model.QueueViewModel.PageSize + 1; i++)
+                        {
+                            <li class="page-item"><a href="@Url.Action("LabQueue", new { page = i, search = Model.QueueViewModel.Search })" class="@(i == Model.QueueViewModel.CurrentPage ? "active page-link" : "page-link")">@i</a></li>
+                        }
+                        @if (Model.QueueViewModel.CurrentPage < Model.QueueViewModel.TotalPatients / Model.QueueViewModel.PageSize + 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("LabQueue", new { page = Model.QueueViewModel.CurrentPage + 1, search = Model.QueueViewModel.Search })">Next</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+            else
+            {
+                <p class="p-3 no-patinet">No patients in line.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<partial name="FooterPartial" />
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.check-lab').click(function () {
+                var patientNo = $(this).data('patient-no');
+
+                // Redirect to the Nurse controller with the patientNo
+                window.location.href = '@Url.Action("Lab", "Staff")?patientNo=' + encodeURIComponent(patientNo);
+            });
+        });
+    </script>
+    <style>
+        .form-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+
+        .form-header {
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 10px;
+        }
+
+        .form-footer {
+            border-top: 1px solid #dee2e6;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+    </style>
+
+
+}

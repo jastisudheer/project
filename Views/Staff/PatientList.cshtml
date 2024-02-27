@@ -1,0 +1,84 @@
+@model PatientListView
+
+<partial name="Navbar" />
+
+
+@{
+    ViewData["Title"] = "Patient List";
+}
+
+<div class="grid">
+    <partial name="SidebarPartial" />
+    <div class="right">
+        
+        <div class="form-card" style="height:740px">
+            <h2 id="title" class="p-3">
+				<p>
+					Patient List
+				</p>
+			</h2>
+            <form method="get"class="search" action="@Url.Action("PatientList")">
+                <div class="input-group mb-3 px-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search by Patient_No, Firstname or Lastname" aria-describedby="button-addon2">
+                    <button class="search-button" type="submit" id="button-addon2">Search</button>
+                </div>
+            </form>
+
+            @if (Model.Patients.Count > 0)
+            {
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Patient No</th>
+                            <th>Name</th>
+                            <th>Gender</th>
+                            <th>Date of Birth</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var patient in Model.Patients)
+                        {
+                            <tr>
+                                <td>@patient.PatientNo</td>
+                                <td>@($"{patient.FirstName} {patient.LastName}")</td>
+                                <td>@patient.Gender</td>
+                                <td>@patient.DateOfBirth.ToString("dddd, dd MMMM yyyy")</td>
+                                <td>
+                                    <a href="@Url.Action("PatientMedicalRecords", new {patientNo = patient.PatientNo})">
+                                        <button type="button" class="table-button">View Medicals</button>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <nav class="py-3" aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("PatientList", new { page = Model.CurrentPage - 1, search = Model.Search })">Previous</a></li>
+                        }
+
+                        @for (int i = 1; i <= Model.TotalPatients / Model.PageSize + 1; i++)
+                        {
+                            <li class="page-item"><a href="@Url.Action("PatientList", new { page = i, search = Model.Search })" class="@(i == Model.CurrentPage ? "active page-link" : "page-link")">@i</a></li>
+                        }
+
+                        @if (Model.CurrentPage < Model.TotalPatients / Model.PageSize + 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("PatientList", new { page = Model.CurrentPage + 1, search = Model.Search })">Next</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+            else
+            {
+                <p class="p-3 no-patinet">No registered patients.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<partial name="FooterPartial" />

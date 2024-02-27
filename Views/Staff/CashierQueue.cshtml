@@ -1,0 +1,143 @@
+@model CashierQueueViewModel
+
+<partial name="Navbar" />
+
+@if (TempData.ContainsKey("C_ConfirmationMessage"))
+{
+    <div class="alert alert-success">
+        @TempData["C_ConfirmationMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+@if (TempData.ContainsKey("C_WarningMessage"))
+{
+    <div class="alert alert-danger">
+        @TempData["C_WarningMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+
+<div class="grid">
+    <partial name="SidebarPartial" />
+
+    <div class="right">
+        <div class="form-card" style="@(Model.QueueViewModel.TotalPatients > 8 ? "height:950px" : "height:800px")">
+            <h2 class="text-center py-3">Cashier Queue</h2>
+            <form method="get"class="search" action="@Url.Action("CashierQueue")">
+                <div class="input-group mb-3 px-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search by Patient_No, Firstname or Lastname" aria-describedby="button-addon2">
+                    <button class="search-button" type="submit" id="button-addon2">Search</button>
+                </div>
+            </form>
+
+            @if (Model.PatientsWithLatestMedical.Any())
+            {
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>PatientNo</th>
+                            <th>Patient Name</th>
+                            <th>QueueNo</th>
+                            <th>Bill</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var patientWithMedical in Model.PatientsWithLatestMedical)
+                        {
+                            <tr>
+                                <td>@patientWithMedical.PatientQueue.PatientNo</td>
+                                <td>@($"{patientWithMedical.PatientQueue.Patient.LastName} {patientWithMedical.PatientQueue.Patient.FirstName}")</td>
+                                <td>@patientWithMedical.PatientQueue.QueueNo</td>
+                                <td>@patientWithMedical.latestMedical.Bill</td>
+                                <td>
+                                    <button type="button"  class="table-button" data-bs-toggle="modal" data-bs-target="#exampleModal-@patientWithMedical.PatientQueue.PatientNo">
+                                        Confirm Payment
+                                    </button>
+                                </td>
+                            </tr>
+                            <div class="modal fade" id="exampleModal-@patientWithMedical.PatientQueue.PatientNo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Has Patient Paid Bill</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form asp-action="ConfirmPayment" method="post" autocomplete="off">
+                                                <div class="container text-center">
+                                                    <input asp-for="@Model.PatientsWithLatestMedical[0].PatientQueue.PatientNo" value="@patientWithMedical.PatientQueue.PatientNo" type="hidden" />
+                                                    <h4>Bill: Ghc<span id="bill">@patientWithMedical.latestMedical.Bill</span></h4>
+                                                    <input asp-for="@Model.PatientsWithLatestMedical[0].latestMedical.ID" value="@patientWithMedical.latestMedical.ID" type="hidden" />
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-success">Yes</button>
+                                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+
+                <nav class="py-3" aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.QueueViewModel.CurrentPage > 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("PharmacyQueue", new { page = Model.QueueViewModel.CurrentPage - 1, search = Model.QueueViewModel.Search })">Previous</a></li>
+                        }
+
+                        @for (int i = 1; i <= Model.QueueViewModel.TotalPatients / Model.QueueViewModel.PageSize + 1; i++)
+                        {
+                            <li class="page-item"><a href="@Url.Action("PharmacyQueue", new { page = i, search = Model.QueueViewModel.Search })" class="@(i == Model.QueueViewModel.CurrentPage ? "active page-link" : "page-link")">@i</a></li>
+                        }
+
+                        @if (Model.QueueViewModel.CurrentPage < Model.QueueViewModel.TotalPatients / Model.QueueViewModel.PageSize + 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("PharmacyQueue", new { page = Model.QueueViewModel.CurrentPage + 1, search = Model.QueueViewModel.Search })">Next</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+            else
+            {
+                <p class="p-3 no-patinet">No patients</p>
+            }
+        </div>
+    </div>
+</div>
+
+<partial name="FooterPartial" />
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Get all drug input elements
+        const drugInputs = document.querySelectorAll('[id^="drug-"]');
+
+        // Function to update the bill
+        function updateBill() {
+            let totalBill = 0;
+
+            // Calculate the total bill based on drug input values
+            drugInputs.forEach(function (input) {
+                totalBill += parseFloat(input.value) || 0;
+            });
+
+            // Display the updated bill
+            const bill = document.getElementById("bill");
+            bill.innerText = totalBill.toFixed(2); // Assuming you want to display the bill with two decimal places
+        }
+
+        // Attach event listeners to each drug input
+        drugInputs.forEach(function (input) {
+            input.addEventListener("input", updateBill);
+        });
+    });
+</script>
+
+}

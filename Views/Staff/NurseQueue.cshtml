@@ -1,0 +1,159 @@
+@model VitalsQueueModel
+
+<partial name="Navbar" />
+
+@if (TempData.ContainsKey("N_ConfirmationMessage"))
+{
+    <div class="alert alert-success">
+        @TempData["N_ConfirmationMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+@if (TempData.ContainsKey("N_WarningMessage"))
+{
+    <div class="alert alert-danger">
+        @TempData["N_WarningMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+
+
+<div class="grid">
+    <partial name="SidebarPartial" />
+    <div class="right">
+        <div class="form-card" style="height:740px">
+            <h2 class="text-center py-3">Nurse Queue</h2>
+            <form method="get" class="search" action="@Url.Action("NurseQueue")">
+                <div class="input-group mb-3 px-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search by Patient_No, Firstname or Lastname" aria-describedby="button-addon2">
+                    <button class="search-button" type="submit" id="button-addon2">Search</button>
+                </div>
+            </form>
+            @if (Model.QueueViewModel.PatientsInLine.Any())
+            {
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>PatientNo</th>
+                            <th>Patient Name</th>
+                            <th>QueueNo</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var patient in Model.QueueViewModel.PatientsInLine)
+                        {
+                            <tr>
+                                <td>@patient.PatientNo</td>
+                                <td>@($"{patient.Patient.LastName} {patient.Patient.FirstName}")</td>
+                                <td>@patient.QueueNo</td>
+                                <td>
+                                    <button type="button" class="table-button" data-bs-toggle="modal" data-bs-target="#exampleModal-@patient.PatientNo">
+                                        Check Vitals
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="exampleModal-@patient.PatientNo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 id="exampleModalLabel">
+                                                <p>@patient.Patient.FirstName's Vitals</p>
+                                            </h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form asp-controller="Staff" asp-action="Nurse" autocomplete="off">
+                                                <div class="queue-grid">
+                                                    <div class="mb-3 vital">
+                                                        <div class="line" style="background-color: rgba(252, 86, 86, 0.6)"></div>
+                                                        <div>
+                                                            <label asp-for="Vital.Temperature" class="form-label">Temperature</label>
+                                                            <input style="width: 70%" asp-for="Vital.Temperature" value="" type="number" class="form-control" id="temperature" required>
+                                                            <span>°C</span>
+                                                        </div>
+                                                        <img src="~/icons/vitals/icons8-temperature-64.png"/>
+                                                    </div>
+                                                    <div class="mb-3 vital">
+                                                        <div class="line" style="background-color: rgba(0, 255, 255, 0.6)"></div>
+                                                        <div>
+                                                            <label asp-for="Vital.Height" class="form-label">Height</label>
+                                                            <input style="width: 70%" asp-for="Vital.Height" value="" type="number" class="form-control" required>
+                                                            <span>cm</span>
+                                                        </div>
+                                                        <img src="~/icons/vitals/icons8-height-64.png"/>
+                                                    </div>
+                                                    <div class="mb-3 vital">
+                                                        <div class="line" style="background-color: rgba(128, 128, 128, 0.6)"></div>
+                                                        <div>
+                                                            <label asp-for="Vital.Weight" class="form-label">Weight</label>
+                                                            <input style="width: 70%" asp-for="Vital.Weight" value="" type="number" class="form-control" required>
+                                                            <span>kg</span>
+                                                        </div>
+                                                        <img src="~/icons/vitals/icons8-weight-64.png"/>
+                                                    </div>
+                                                    <div class="mb-3 vital">
+                                                        <div class="line" style="background-color: rgba(128, 238, 128, 0.6)"></div>
+                                                        <div>
+                                                            <label asp-for="Vital.BloodPressure" class="form-label">Blood Pressure</label>
+                                                            <input style="width: 70%" asp-for="Vital.BloodPressure" value="" type="text" class="form-control" required>
+                                                            <span>mmHg</span>
+                                                        </div>
+                                                        <img src="~/icons/vitals/icons8-blood-pressure-64.png"/>
+                                                    </div>
+                                                </div>
+                                                <input asp-for="Vital.PatientNo" value="@patient.PatientNo" type="hidden" />
+                                                <button type="submit" class="table-button">Submit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+
+                <nav class="py-3" aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.QueueViewModel.CurrentPage > 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("NurseQueue", new { page = Model.QueueViewModel.CurrentPage - 1, search = Model.QueueViewModel.Search })">Previous</a></li>
+                        }
+
+                        @for (int i = 1; i <= Model.QueueViewModel.TotalPatients / Model.QueueViewModel.PageSize + 1; i++)
+                        {
+                            <li class="page-item"><a href="@Url.Action("NurseQueue", new { page = i, search = Model.QueueViewModel.Search })" class="@(i == Model.QueueViewModel.CurrentPage ? "active page-link" : "page-link")">@i</a></li>
+                        }
+
+                        @if (Model.QueueViewModel.CurrentPage < Model.QueueViewModel.TotalPatients / Model.QueueViewModel.PageSize + 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("NurseQueue", new { page = Model.QueueViewModel.CurrentPage + 1, search = Model.QueueViewModel.Search })">Next</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+            else
+            {
+                <p class="p-3 no-patinet">No patients in line.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<partial name="FooterPartial" />
+
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.check-vitals').click(function () {
+                var patientNo = $(this).data('patient-no');
+
+                // Redirect to the Nurse controller with the patientNo
+                window.location.href = '@Url.Action("Nurse", "Staff")?patientNo=' + encodeURIComponent(patientNo);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,232 @@
+@model PatientMedicalViewModel
+
+<partial name="Navbar" />
+
+@{
+    ViewData["Title"] = "Patient Medical Records";
+}
+
+<div class="grid">
+    <partial name="SidebarPartial" />
+    <div class="right" style="margin-bottom: 30px;">
+		<div class="p-2">
+			<h2>@($"Medical Records for {Model.Patient.FirstName} {Model.Patient.LastName}")</h2>
+			<h2>@($"{Model.Patient.PatientNo}")</h2>
+		</div>
+		@if(Model.YearlyRecords.Any())
+		{
+
+		<div class="form-card p-3">
+            <h2 id="title">
+				<p id="caption">
+					Select Year
+				</p>
+			</h2>
+			<div class="mt-4" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:10px">
+				<div class="card p-1 text-center" style="cursor:pointer" onclick="showRecord('@Model.MostRecent')">
+					Most recent
+				</div>
+				@foreach(var year in Model.YearlyRecords)
+				{
+					<div class="card text-center p-1 year"
+						style="cursor:pointer" onclick="showMonth('@year.YearNo')">
+						@year.YearNo
+					</div>
+					foreach(var month in year.Months)
+					{
+						<div class="month text-center card p-1 @year.YearNo"
+							style="cursor:pointer;display:none"
+							onclick="showDays('@month.MonthNo@month.Date.Year', '@year.YearNo', '@month.Date.ToString("MMM")')">
+							@month.Date.ToString("MMM")
+						</div>
+						foreach(var day in month.MedicalRecords)
+						{
+							<div class="day text-center card p-1 @month.MonthNo@month.Date.Year"
+							style="cursor:pointer;display:none"
+							onclick="showRecord('@year.YearNo-@month.MonthNo-@day.Date.Day')">
+								@day.Date.ToString("dddd, dd")
+							</div>
+						}
+					}
+				}
+				<div class="card p-1 text-center" style="cursor:pointer" onclick="back()">Back</div>
+			</div>
+		</div>
+		}else{
+			<p class="no-patinet m-0">@Model.Patient.FirstName has no medical records.</p>
+		}
+		
+		@foreach(var year in Model.YearlyRecords){
+			foreach(var month in year.Months){
+				if (month.MedicalRecords.Any()){
+					foreach(var record in month.MedicalRecords){
+					<div class="@year.YearNo-@month.MonthNo-@record.Date.Day record" >
+						<div class="m-title">
+							<h4 class="p-2">Medical Record: @record.ID</h4>
+							<h4 class="p-2">@record.Date.ToString("dddd, dd MMMM yyyy")</h4>
+						</div>
+						<div class="p-3">
+							<div class="m-grid">
+								<div class="m-col">
+									<h4 class="text-center">Vitals</h4>
+									<div class="m-vitals">
+										<div>
+											<img style="width:20px;height:20px" src="~/icons/medical/thermometer-max-svgrepo-com.svg"/>
+											<h5>Temperature</h5>
+											<p>@record.Vital.Temperature °C</p>
+										</div>
+										<div style="background: linear-gradient(225deg,rgba(128, 238, 128, 0.5), transparent)">
+											<img style="width: 20px;height: 20px" src="~/icons/medical/blood-pressure-monitor-svgrepo-com.svg"/>
+											<h5>Blood Pressure</h5>
+											<p>@record.Vital.BloodPressure mmHg</p>
+										</div>
+										<div style="background: linear-gradient(45deg,rgba(0, 255, 255, 0.5), transparent)">
+											<img style="width:20px;height:20px" src="~/icons/medical/height-line-svgrepo-com.svg"/>
+											<h5>Height</h5>
+											<p>@record.Vital.Height cm</p>
+										</div>
+										<div style="background: linear-gradient(315deg,rgba(128, 128, 128, 0.5), transparent)">
+											<img style="width:20px;height:20px" src="~/icons/medical/weight-svgrepo-com.svg"/>
+											<h5>Weight</h5>
+											<p>@record.Vital.Weight kg</p>
+										</div>
+									</div>
+								</div>
+								<div class="m-col">
+									<div class="symptoms mb-3">
+										<div style="display:flex;flex-direction:row">
+											<img style="width:20px;height:20px;margin-right:10px;position:relative;bottom:3px" src="~/icons/medical/sick-svgrepo-com.svg"/>
+											<h4>Symptoms</h4>
+										</div>
+										<div class="s">@record.Symptoms</div>
+									</div>
+									<div class="symptoms">
+										<div style="display:flex;flex-direction:row">
+											<img style="width:20px;height:20px;margin-right:10px;position:relative;bottom:3px" src="~/icons/medical/health-medical-medical-report-svgrepo-com.svg"/>
+											<h4>Diagnoses</h4>
+										</div>
+										<div class="s">@record.Diagnoses</div>
+									</div>
+								</div>
+							</div>
+							<div class="m-grid">
+								@if (record.Drugs.Any())
+								{
+									<div class="m-table">
+											<ul class="t-row ul-head">
+												<li>Drug Name</li>
+												<li>Dosage</li>
+											</ul>
+											@foreach (var drug in record.Drugs)
+											{
+												<ul class="t-row">
+													<li>@drug.DrugName</li>
+													<li>@drug.Dosage</li>
+												</ul>
+											}
+									</div>
+								}
+								else
+								{
+									<h5>No drugs</h5>
+								}
+								@if (record.Labs.Any())
+								{
+									<div class="m-table">
+											<ul class="t-row t-row0 ul-head">
+												<li>Lab Name</li>
+												<li>Notes</li>
+												<li>Result</li>
+											</ul>
+											@foreach (var lab in record.Labs)
+											{
+												<ul class="t-row t-row0">
+													<li>@lab.LabName</li>
+													<li>@lab.Notes</li>
+													<li>@lab.Result</li>
+												</ul>
+											}
+									</div>
+								}
+								else
+								{
+									<h5>No Labs</h5>
+								}
+							</div>
+						</div>
+					</div>
+					}
+				}
+			}
+		}
+	</div>
+</div>
+
+<partial name="FooterPartial" />
+
+
+		<script>
+			let caption = document.getElementById("caption")
+			let yearDivs = document.querySelectorAll(".year")
+			let monthDivs = document.querySelectorAll('.month')
+			let dayDivs = document.querySelectorAll('.day')
+			let allRecords = document.querySelectorAll('.record')
+			let prevPage = ""
+			let prevMonth = ""
+
+			
+			function showMonth(year){
+				let monthDiv = document.getElementsByClassName(year)
+				
+				yearDivs.forEach(element => {
+					element.style.display = "none";
+				});
+				prevPage = ""
+				
+				monthDiv[0].style.display = "block"
+				caption.innerText = `Select Month in ${year}`
+			}
+			function showDays(month, previous, monthString){
+				let dayDiv = document.getElementsByClassName(month)
+				prevPage = previous
+				prevMonth = monthString
+				
+				monthDivs.forEach(element => {
+					element.style.display = "none";
+				});
+				
+				dayDiv[0].style.display = "block"
+				caption.innerText = `Select Day in ${monthString}`
+			}
+			function back(){
+				monthDivs.forEach(element => {
+					element.style.display = "none";
+				})
+				dayDivs.forEach(element => {
+					element.style.display = "none";
+				})
+				
+				if(prevPage !== ""){
+					prev = document.getElementsByClassName(prevPage)
+					prev[0].style.display = "block"
+					prevPage = ""
+					caption.innerText = `Select Day in ${monthString}`
+				}
+				else
+				{
+					yearDivs.forEach(element => {
+						element.style.display = "block";
+					});
+					caption.innerText = "Select Year"
+				}
+			}
+			function showRecord(recordID){
+				let singleRecord = document.getElementsByClassName(recordID)
+				
+				allRecords.forEach(element => {
+					element.style.display = "none";
+				});
+				
+				singleRecord[0].style.display = "block"
+			}
+		</script>

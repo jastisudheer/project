@@ -1,0 +1,175 @@
+@model Persol_HMS.Models.Patient
+
+<partial name="Navbar" />
+
+
+@if (TempData.ContainsKey("R_ConfirmationMessage"))
+{
+    <div class="alert alert-success">
+        @TempData["R_ConfirmationMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+@if (TempData.ContainsKey("R_WarningMessage"))
+{
+    <div class="alert alert-danger">
+        @TempData["R_WarningMessage"]
+        <button type="button" style="position:absolute;right: 0" data-bs-dismiss="alert" class="btn-close" aria-label="Close"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@modelError.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="grid">
+    <partial name="SidebarPartial" />
+    <div class="right" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px">
+
+        <div style="display:grid;grid-template-rows:repeat(2,1fr)">
+            <form class="p-3 form-card" style="margin-bottom:10px" asp-action="CreateOrGetPatient" method="post" autocomplete="off">
+                <h2 id="title" class="text-center">Add existing patient to queue</h2>
+                <hr>
+                <div class="forOldPatient" style="position:relative;top:15px">
+                    <div class="mb-3" style="position:relative">
+                        <label asp-for="PatientNo" class="form-label">Patient's Id Number</label>
+                        <input style="max-width:400px" asp-for="PatientNo" type="text" class="form-control" id="oldPatientId">
+                        <span asp-validation-for="PatientNo" class="text-danger" style="position:absolute"></span>
+                        <button type="submit" class="btn btn-primary form-button mt-4" id="openConfirmationModalOldPatient">Submit</button>
+                    </div>
+                </div>
+            </form>
+
+            <form method="get" style="margin-top:10px" class="p-3 form-card" action="@Url.Action("PatientListOnly")">
+                <h2 id="title" class="text-center">Search for patient by Patient_No, Firstname or Lastname</h2>
+                <hr>
+                <div style="position:relative;top:15px">
+                    <div class="mb-3" style="position:relative">
+                        <input style="max-width:400px" name="search" type="text" class="form-control" placeholder="Search by Patient_No, Firstname or Lastname">
+                        <button type="submit" class="btn btn-primary form-button mt-4" id="openConfirmationModalNewPatient">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <form class="p-3 form-card" asp-action="CreateOrGetPatient" method="post" autocomplete="off">
+            <h2 id="title" class="text-center">Create a new patient</h2>
+            <hr>
+            <div class="forNewPatient">
+                <div>
+                    <label asp-for="FirstName" class="form-label">Patient's Firstname</label>
+                    <input asp-for="FirstName" type="text" class="form-control">
+                    <span asp-validation-for="FirstName" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label asp-for="LastName" class="form-label">Patient's Lastname</label>
+                    <input asp-for="LastName" type="text" class="form-control">
+                    <span asp-validation-for="LastName" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label asp-for="DateOfBirth" class="form-label">Patient's Date of Birth (MM/DD/YYYY)</label>
+                    <input asp-for="DateOfBirth" type="date" value="2000-01-01" min="1920-01-01" max="2022-01-01" class="form-control">
+                    <span asp-validation-for="DateOfBirth" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label class="form-label">Patient's Gender</label>
+                    <select  asp-for="Gender" class="form-select" id="floatingSelect" aria-label="Floating label select example">
+                        <option value="">Select Gender</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label class="form-label">Enter Insurance Provider</label>
+                    <input asp-for="InsuranceType" type="text" class="form-control">
+                    <span asp-validation-for="InsuranceType" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label class="form-label">Enter Insurance Number</label>
+                    <input asp-for="InsuranceNo" type="text" class="form-control">
+                    <span asp-validation-for="InsuranceNo" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label class="form-label">Enter Insurance Expiry Date (MM/DD/YYYY)</label>
+                    <input asp-for="InsuranceExpireDate" type="date"  value="2000-01-01" min="2000-01-01" class="form-control">
+                    <span asp-validation-for="InsuranceExpireDate" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label asp-for="ContactNo" class="form-label">Patient Contact Number</label>
+                    <input asp-for="ContactNo" type="text" class="form-control" id="ContactNo">
+                    <span asp-validation-for="ContactNo" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label asp-for="EmergencyContactFirstName" class="form-label">Patient's Emergency Contact First Name</label>
+                    <input asp-for="EmergencyContactFirstName" type="text" class="form-control">
+                    <span asp-validation-for="EmergencyContactFirstName" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label asp-for="EmergencyContactLastName" class="form-label">Patient's Emergency Contact Last Name</label>
+                    <input asp-for="EmergencyContactLastName" type="text" class="form-control">
+                    <span asp-validation-for="EmergencyContactLastName" class="text-danger" style="position:absolute"></span>
+                </div>
+                <div>
+                    <label asp-for="EmergencyContactNo" class="form-label">Patient's Emergency Contact Number</label>
+                    <input asp-for="EmergencyContactNo" type="text" class="form-control">
+                    <span asp-validation-for="EmergencyContactNo" class="text-danger" style="position:absolute"></span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary form-button mt-4">Submit</button>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.IsPatientInQueue)
+{
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="@Url.Action("CreateOrGetPatient", new { confirm = "true", patientNo = TempData["PatientNo"] })">
+                <div class="modal-body">
+                    Patient has been here today, do you want to add patient to queue again?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+                    <button type="submit" class="btn btn-success" id="confirmAddToQueue">Yes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+}
+
+<partial name="FooterPartial" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Check if the patient is in the queue and has the status "IsDone"
+        var isPatientInQueue = @Json.Serialize(TempData["IsPatientInQueue"]);
+        if (isPatientInQueue) {
+            $('#confirmationModal').modal('show');
+        }
+        // Handle "Yes" button click
+        $('#confirmAddToQueue').on('click', function () {
+            $('#confirmationModal').modal('hide');
+            $('form#yourFormId').submit();
+        });
+    });
+</script>
